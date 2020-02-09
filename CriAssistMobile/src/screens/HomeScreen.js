@@ -29,21 +29,23 @@ const HomeScreen = props => {
 
 const styles = StyleSheet.create({
   container: {
+    paddingVertical: 20,
+    backgroundColor: '#f8f8ff',
     flex: 1,
-    flexDirection: 'row',
     width: '100%',
-    justifyContent: 'space-around',
     alignItems: 'center',
   },
   form: {
     justifyContent: 'center',
-
     alignItems: 'center',
-    borderRadius: 10,
-    width: '42%',
-    aspectRatio: 1,
-    backgroundColor: 'red',
+    marginVertical: 8,
+    borderRadius: 6,
+    width: '90%',
+    height: 52,
+    backgroundColor: 'white',
+    elevation: 3,
   },
+  formTitle: {},
 });
 
 export default HomeScreen;

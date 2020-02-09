@@ -11,6 +11,7 @@ import Modal from 'react-native-modal';
 import DatePicker from 'react-native-datepicker';
 import {useQuery, useMutation} from '@apollo/react-hooks';
 import {FORM_DATA, SUBMIT_FORM} from '../queries';
+import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 
 const {height} = Dimensions.get('window');
 
@@ -32,7 +33,7 @@ const FormScreen = ({navigation, route}) => {
       const vis = {};
       data.form.fields.forEach(element => {
         val[element.name] = '';
-        if (['Texts'].includes(element.type)) {
+        if (['Texts', 'Dates', 'Numbers', 'Locations'].includes(element.type)) {
           vis[element.name] = false;
         }
       });
@@ -135,6 +136,7 @@ const FormScreen = ({navigation, route}) => {
                 key={item._id}
                 onPress={() => toggleModal(item.name)}
                 style={{
+                  marginVertical: 8,
                   width: '90%',
                   height: 52,
                   borderRadius: 6,
@@ -149,6 +151,139 @@ const FormScreen = ({navigation, route}) => {
               </TouchableOpacity>
             </>
           );
+        case 'Numbers':
+          return (
+            <>
+              <Modal
+                isVisible={visibles[item.name]}
+                style={{justifyContent: 'flex-end', margin: 0}}>
+                <View
+                  style={{
+                    width: '100%',
+                    height: height / 2,
+                    paddingVertical: '8%',
+                    backgroundColor: 'white',
+                    borderTopRightRadius: 15,
+                    borderTopLeftRadius: 15,
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      marginBottom: 10,
+                      textTransform: 'capitalize',
+                    }}>
+                    {item.title}
+                  </Text>
+                  <ScrollView style={{width: '100%'}}>
+                    {item.options.map(option => (
+                      <TouchableOpacity
+                        onPress={() => {
+                          changeValue(item.name, option.value.numberValue);
+                          toggleModal(item.name);
+                        }}
+                        style={{
+                          height: 52,
+                          width: '100%',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderTopWidth: 1,
+                          borderBottomWidth: 1,
+                        }}>
+                        <Text>{option.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Modal>
+              <TouchableOpacity
+                key={item._id}
+                onPress={() => toggleModal(item.name)}
+                style={{
+                  marginVertical: 8,
+                  width: '90%',
+                  height: 52,
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  justifyContent: 'center',
+                  paddingHorizontal: 8,
+                  borderWidth: 1,
+                }}>
+                <Text style={{fontSize: 16}}>
+                  {values[item.name] ? values[item.name] : item.name}
+                </Text>
+              </TouchableOpacity>
+            </>
+          );
+        case 'Locations':
+          return (
+            <>
+              <Modal
+                isVisible={visibles[item.name]}
+                style={{justifyContent: 'flex-end', margin: 0}}>
+                <View
+                  style={{
+                    width: '100%',
+                    height: height / 2,
+                    backgroundColor: 'white',
+                    borderTopRightRadius: 15,
+                    borderTopLeftRadius: 15,
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      marginBottom: 10,
+                      textTransform: 'capitalize',
+                    }}>
+                    {item.title}
+                  </Text>
+                  <ScrollView
+                    style={{
+                      backgroundColor: 'white',
+                      width: '100%',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                    }}>
+                    {item.options.map(option => (
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={{margin: 10}}
+                        onPress={() => {
+                          changeValue(item.name, option.value.pointValue);
+                          toggleModal(item.name);
+                        }}>
+                        <MapView
+                          style={{height: 150, width: 150}}
+                          initialRegion={{
+                            latitude: option.value.pointValue.lat,
+                            longitude: option.value.pointValue.long,
+                            latitudeDelta: 0.0922,
+                            longitudeDelta: 0.0421,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Modal>
+              <TouchableOpacity
+                key={item._id}
+                onPress={() => toggleModal(item.name)}
+                style={{
+                  marginVertical: 8,
+                  width: '90%',
+                  height: 52,
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  justifyContent: 'center',
+                  paddingHorizontal: 8,
+                  borderWidth: 1,
+                }}>
+                <Text style={{fontSize: 16}}>{item.name}</Text>
+              </TouchableOpacity>
+            </>
+          );
         case 'Date':
           return (
             <DatePicker
@@ -157,7 +292,7 @@ const FormScreen = ({navigation, route}) => {
               date={values[item.name]}
               mode="datetime"
               placeholder={item.title}
-              format="YYYY-MM-DD-HH:MM"
+              format="YYYY-MM-DD-HH-MM"
               minDate="2016-05-01"
               maxDate="2026-06-01"
               confirmBtnText="Confirm"
@@ -172,16 +307,152 @@ const FormScreen = ({navigation, route}) => {
                   borderColor: 'black',
                 },
               }}
-              onDateChange={date => {
-                console.log(date);
-                changeValue(item.name, date);
+              onDateChange={newDate => {
+                const splitedDate = newDate.split('-');
+                const date = new Date(
+                  splitedDate[0],
+                  splitedDate[1],
+                  splitedDate[2],
+                  splitedDate[3],
+                  splitedDate[4],
+                );
+                console.log(date.toISOString());
+                changeValue(item.name, date.toISOString());
               }}
             />
           );
         case 'Dates':
           return (
             <>
+              <Modal
+                isVisible={visibles[item.name]}
+                style={{justifyContent: 'flex-end', margin: 0}}>
+                <View
+                  style={{
+                    width: '100%',
+                    height: height / 2,
+                    paddingVertical: '8%',
+                    backgroundColor: 'white',
+                    borderTopRightRadius: 15,
+                    borderTopLeftRadius: 15,
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      marginBottom: 10,
+                      textTransform: 'capitalize',
+                    }}>
+                    {item.title}
+                  </Text>
+                  <ScrollView style={{width: '100%'}}>
+                    {item.options.map(option => (
+                      <TouchableOpacity
+                        onPress={() => {
+                          changeValue(item.name, option.value.dateValue);
+                          toggleModal(item.name);
+                        }}
+                        style={{
+                          height: 52,
+                          width: '100%',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderTopWidth: 1,
+                          borderBottomWidth: 1,
+                        }}>
+                        <Text>
+                          {option.label + ':' + ' ' + option.value.dateValue}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Modal>
               <TouchableOpacity
+                key={item._id}
+                onPress={() => toggleModal(item.name)}
+                style={{
+                  marginVertical: 8,
+                  width: '90%',
+                  height: 52,
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  justifyContent: 'center',
+                  paddingHorizontal: 8,
+                  borderWidth: 1,
+                }}>
+                <Text style={{fontSize: 16}}>
+                  {values[item.name] ? values[item.name] : item.name}
+                </Text>
+              </TouchableOpacity>
+            </>
+          );
+        case 'Location':
+          return (
+            <>
+              <Modal
+                isVisible={visibles[item.name]}
+                style={{justifyContent: 'flex-end', margin: 0}}>
+                <View
+                  style={{
+                    width: '100%',
+                    height: height / 2,
+                    backgroundColor: 'white',
+                    borderTopRightRadius: 15,
+                    borderTopLeftRadius: 15,
+                    alignItems: 'center',
+                  }}>
+                  <MapView
+                    onPress={e => {
+                      changeValue(item.name, {
+                        coordinate: e.nativeEvent.coordinate,
+                      });
+                    }}
+                    onRegionChangeComplete={({latitude, longitude}) =>
+                      changeValue(item.name, {lat: latitude, long: longitude})
+                    }
+                    provider={PROVIDER_GOOGLE}
+                    style={{flex: 1, width: '100%'}}
+                    initialRegion={{
+                      latitude: 37.78825,
+                      longitude: -122.4324,
+                      latitudeDelta: 0.0922,
+                      longitudeDelta: 0.0421,
+                    }}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: height / 4 - 26,
+                      height: 15,
+                      width: 15,
+                      borderRadius: 15,
+                      backgroundColor: 'red',
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() => toggleModal(item.name)}
+                    style={{
+                      marginVertical: 8,
+                      width: '100%',
+                      height: 52,
+                      backgroundColor: '#3467df',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        color: 'white',
+                      }}>
+                      Choose
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Modal>
+              <TouchableOpacity
+                key={item._id}
+                onPress={() => toggleModal(item.name)}
                 style={{
                   width: '90%',
                   height: 52,
@@ -209,15 +480,24 @@ const FormScreen = ({navigation, route}) => {
       }}>
       {data && data.form.fields.map(renderInput)}
       <TouchableOpacity
-        onPress={() =>
-          CreateFormAnswer({
-            fetchPolicy: 'no-cache',
-            variables: {
-              formId: id,
-              value: values,
-            },
-          })
-        }
+        onPress={() => {
+          let validated = true;
+          data.form.fields.forEach(field => {
+            if (field.required && values[field.name] === '') {
+              validated = false;
+            }
+          });
+          if (validated) {
+            CreateFormAnswer({
+              fetchPolicy: 'no-cache',
+              variables: {
+                formId: id,
+                value: values,
+              },
+            });
+            navigation.goBack();
+          }
+        }}
         style={{
           marginTop: 30,
           height: 52,

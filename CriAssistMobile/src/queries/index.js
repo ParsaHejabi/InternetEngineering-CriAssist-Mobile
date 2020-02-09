@@ -11,36 +11,37 @@ export const FORMS_LIST = gql(`
 
 export const FORM_DATA = gql(`
 query FormData($id: ID!){
-  form(_id: $id){
+  form(_id: $id) {
     _id
     title
-    fields{
+    fields {
       name
       title
-      required
       type
-      options{
+      required
+      options {
         label
-        value{
-          __typename
-          ... on FormFieldOptionValueText{
+        value {
+          ...on FormFieldOptionValueText {
             textValue
           }
-          ... on FormFieldOptionValueDate{
-            dateValue
-          }
-          ... on FormFieldOptionValuePoint{
-            lat
-            long
-          }
-          ... on FormFieldOptionValueNumber{
+          ...on FormFieldOptionValueNumber {
             numberValue
+          }
+          ...on FormFieldOptionValuePoint {
+            pointValue {
+              lat
+              long
+            }
+          }
+          ...on FormFieldOptionValueDate {
+            dateValue
           }
         }
       }
     }
   }
-}  
+}
 `);
 
 export const SUBMIT_FORM = gql(`

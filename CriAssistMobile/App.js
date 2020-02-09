@@ -18,7 +18,6 @@ const App = () => {
     <ApolloProvider client={client}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Map" component={MapScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Form" component={FormScreen} />
         </Stack.Navigator>
